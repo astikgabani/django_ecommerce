@@ -1,0 +1,87 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Base Template</title>
+    {% include "base/css.html" %}
+</head>
+<body>
+    {% include "base/navbar.html" %}
+    {% block content %}{% endblock %}
+
+    {% include "base/js.html" %}
+
+    <script>
+        $(document).ready(function(){
+            var productForm = $(".form-product-ajax")
+            productForm.submit(function(event){
+                event.preventDefault();
+                var thisForm = $(this)
+<!--                var actionEndpoint = thisForm.attr("action");-->
+                var actionEndpoint = thisForm.attr("data-endpoint");
+                var httpMethod = thisForm.attr("method");
+                var formData = thisForm.serialize();
+
+                $.ajax({
+                    url: actionEndpoint,
+                    method: httpMethod,
+                    data: formData,
+                    success: function(data){
+                        var add_to_cart_submit_span = thisForm.find(".add-to-cart-submit-span")
+                        if (data.added){
+                            add_to_cart_submit_span.html('In Cart <button type="submit" class="btn btn-link">Remove?</button>')
+                        } else {
+                            add_to_cart_submit_span.html('<button type="submit" class="btn btn-success">Add to Cart</button>')
+                        }
+                        var navCartCount = $(".nav-cart-count")
+                        navCartCount.text(data.cartItemCount)
+                        var currentPath = window.location.href
+                        if (currentPath.indexOf("cart") != -1){
+                            refreshCart()
+                        }
+                    },
+                    error: function(errorData){
+                        console.log("Error")
+                        console.log(errorData)
+                    }
+                })
+            })
+
+            function refreshCart(){
+                var cartTable = $(".cart-home")
+                var cartBody = cartTable.find(".cart-body")
+                var productRows = cartTable.find(".cart-products")
+
+                var refreshCartUrl = "/api/cart";
+                var refreshCartMethod = "GET";
+                var data = {};
+                var currentURL = window.location.href
+
+                $.ajax({
+                    url:refreshCartUrl,
+                    method: refreshCartMethod,
+                    data: data,
+                    success: function(data){
+                        if (data.products.length > 0){
+                            productRows.html("")
+                            $.each(data.products, function(index, value){
+                                cartBody.prepend("<tr><th scope=\"row\">" + (index +1) + "</th><td><a href='"+ value.url + "'>" + value.name + "</a></td><td colspan=3>" + value.price + "</td></tr>")
+                            })
+                            cartBody.find(".cart-subtotal").text(data.subtotal)
+                            cartBody.find(".cart-total").text(data.total)
+                        } else {
+                            window.location.href = currentURL
+                        }
+                    },
+                    error: function(error){
+                        console.log(error)
+                    }
+                })
+
+            }
+        })
+    </script>
+</body>
+</html>
