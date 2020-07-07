@@ -3,4 +3,4 @@
 *.htm inguist-detectable=false
 *.js linguist-detectable=true
 *.py linguist-detectable=true
-ecommerce/assets/static_root/* linguist-vendored
+ecommerce/assets/static_root/*.js linguist-vendored
